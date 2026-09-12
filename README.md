@@ -4,6 +4,8 @@ MlinuxOS is a miniature operating system that was created by me to be used in th
 
 I decided to give it a desktop appearance while adding my own elements into it.
 
+<img width="1917" height="1078" alt="image" src="https://github.com/user-attachments/assets/873b7f70-dd90-4d64-b8e4-5dd8806ad1bd" />
+
 ## What I Made
 
 MlinuxOS has:
@@ -33,7 +35,9 @@ Here are some additional features that I have incorporated into my project besid
 * Browser 
 * Wallpaper filtering 
 * Grid-aligned desktop icons 
-* Cat mascot on the taskbar
+* Pixel cat on the taskbar
+
+<img width="1917" height="1078" alt="Screenshot 2026-09-12 142441" src="https://github.com/user-attachments/assets/47eb8e7b-5b44-4937-9940-f2ffa758eb6b" />
 
 ## How I Made It
 
@@ -48,6 +52,6 @@ MlinuxOS was made to meet these requirements while adding my own ideas.
 
 ## Links
 
-* [Stardance Project]()
-* [Webos]()
+* [Stardance Project](https://stardance.hackclub.com/projects/59466)
+* [Webos](https://webos.urnotmistix.com/)
 
