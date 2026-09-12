@@ -27,6 +27,8 @@ MlinuxOS has:
 
 The terminal also has a few simple commands like `help`, `about`, `date`, `whoami`, `ls`, `pwd` and `neofetch`.
 
+<img width="500" height="700" alt="image" src="https://github.com/user-attachments/assets/03b17a17-85f3-4418-b519-b1508f27bea9" />
+
 ## My Features
 
 Here are some additional features that I have incorporated into my project besides the essential ones specified in the guide:
