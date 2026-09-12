@@ -1,3 +1,5 @@
+/* MlinuxOS styles - devlog 02 */
+
 * {
   box-sizing: border-box;
 }
@@ -6,10 +8,11 @@ body {
   margin: 0;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Courier New', monospace;
+  font-family: 'Minecraft', 'Courier New', monospace;
   color: #fff;
 }
 
+/* ---------- desktop ---------- */
 #desktop {
   position: relative;
   width: 100%;
@@ -17,6 +20,7 @@ body {
   background-color: #2b5fa8;
 }
 
+/* ---------- desktop icons ---------- */
 .icon {
   position: absolute;
   width: 80px;
@@ -25,21 +29,13 @@ body {
   align-items: center;
   gap: 4px;
   padding: 6px;
+  cursor: grab;
+  user-select: none;
 }
 
-.icon:nth-child(1) {
-  top: 20px;
-  left: 20px;
-}
-
-.icon:nth-child(2) {
-  top: 130px;
-  left: 20px;
-}
-
-.icon:nth-child(3) {
-  top: 240px;
-  left: 20px;
+.icon:hover {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 
 .icon-box {
@@ -51,35 +47,211 @@ body {
 
 .label {
   font-size: 13px;
+  color: #fff;
   text-align: center;
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* ---------- windows ---------- */
+.window {
+  position: absolute;
+  width: 260px;
+  height: 190px;
+  background: #ece9d8;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.window.hidden {
+  display: none;
+}
+
+.titlebar {
+  background: linear-gradient(180deg, #3f8ff5, #0a246a);
+  color: #fff;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  gap: 4px;
+  cursor: grab;
+}
+
+.titlebar .title-text {
+  flex: 1;
+  font-size: 13px;
   text-shadow: 1px 1px 1px #000;
 }
 
-/* taskbar */
+.win-btn {
+  width: 20px;
+  height: 18px;
+  border: 2px solid #000;
+  background: #2f6fd0;
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.win-btn.close {
+  background: #d5301a;
+}
+
+.window-body {
+  flex: 1;
+  overflow: auto;
+  padding: 10px;
+  font-size: 13px;
+  color: #111;
+}
+
+/* ---------- app specific bits ---------- */
+textarea.note {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #000;
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px;
+  resize: none;
+  color: #111;
+}
+
+.terminal {
+  background: #000;
+  color: #4dff4d;
+  font-family: inherit;
+  font-size: 13px;
+  height: 100%;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.terminal-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-input-row {
+  display: flex;
+  gap: 4px;
+}
+
+.terminal-input-row .prompt {
+  color: #ffd24c;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #4dff4d;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.file-row {
+  border: 2px solid #000;
+  padding: 6px;
+  background: #fff;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+/* ---------- taskbar ---------- */
 #taskbar {
   height: 48px;
-  background: #0d3aa8;
+  background: linear-gradient(180deg, #3f8cf3, #0d3aa8);
   border-top: 3px solid #000;
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  gap: 10px;
+  padding: 0 8px;
+  gap: 8px;
 }
 
 #start-btn {
   font-family: inherit;
   font-size: 14px;
   color: #fff;
-  background: #2d6e0e;
+  background: linear-gradient(180deg, #8fd35e, #2d6e0e);
   border: 2px solid #000;
   padding: 6px 12px;
   cursor: pointer;
 }
 
+#taskbar-apps {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  height: 100%;
+  align-items: center;
+}
+
+.task-chip {
+  font-size: 12px;
+  color: #fff;
+  background: #2f66d0;
+  border: 2px solid #000;
+  padding: 5px 8px;
+  cursor: pointer;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 #clock {
-  margin-left: auto;
   font-size: 13px;
+  color: #fff;
   background: #0e2f8f;
   border: 2px solid #000;
   padding: 5px 8px;
+}
+
+/* ---------- start menu ---------- */
+#start-menu {
+  position: absolute;
+  bottom: 52px;
+  left: 8px;
+  width: 180px;
+  background: #ece9d8;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+  display: none;
+  flex-direction: column;
+  z-index: 999;
+}
+
+#start-menu.open {
+  display: flex;
+}
+
+.sm-head {
+  font-size: 13px;
+  color: #fff;
+  background: linear-gradient(180deg, #8fd35e, #2d6e0e);
+  padding: 10px;
+  border-bottom: 2px solid #000;
+}
+
+.sm-item {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #111;
+  cursor: pointer;
+  border-bottom: 1px solid #000;
+  background: #fff;
+}
+
+.sm-item:hover {
+  background: #a6caf0;
 }
