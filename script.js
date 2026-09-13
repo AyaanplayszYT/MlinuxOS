@@ -1,499 +1,224 @@
-var openApps = {};
-var topZ = 10;
-var wallpaperIndex = 0;
+var z = 10;
 
-var wallpaperFilters = [
-  "none",
-  "sepia(60%) saturate(150%)",
-  "hue-rotate(90deg)",
-  "grayscale(70%)"
-];
-
-// ---------- clock ----------
-function updateClock() {
-  var now = new Date();
-  document.getElementById("clock").textContent = now.toLocaleTimeString();
+function openWin(id) {
+  var w = document.getElementById(id);
+  w.style.display = "flex";
+  z++; w.style.zIndex = z;
+  addTaskBtn(id);
+  focusWin(id);
+  startMenu.style.display = "none";
+  ctxMenu.style.display = "none";
 }
-updateClock();
-setInterval(updateClock, 1000);
 
-// ---------- start menu ----------
-var startBtn = document.getElementById("start-btn");
-var startMenu = document.getElementById("start-menu");
+function closeWin(id) {
+  var w = document.getElementById(id);
+  w.style.display = "none";
+  w.classList.remove("max");
+  var b = document.getElementById("t-" + id);
+  if (b) b.remove();
+}
 
-startBtn.addEventListener("click", function (e) {
-  e.stopPropagation();
-  startMenu.classList.toggle("open");
-});
+function minWin(id) { document.getElementById(id).style.display = "none"; }
+function maxWin(id) { document.getElementById(id).classList.toggle("max"); }
 
-document.addEventListener("click", function () {
-  startMenu.classList.remove("open");
-});
+function focusWin(id) {
+  document.querySelectorAll(".window").forEach(function(w) { w.classList.remove("active"); });
+  document.querySelectorAll(".taskapp").forEach(function(b) { b.classList.remove("on"); });
+  var w = document.getElementById(id);
+  w.classList.add("active");
+  z++; w.style.zIndex = z;
+  var b = document.getElementById("t-" + id);
+  if (b) b.classList.add("on");
+}
 
-var menuItems = document.querySelectorAll(".sm-item");
-for (var i = 0; i < menuItems.length; i++) {
-  menuItems[i].addEventListener("click", function (e) {
+function addTaskBtn(id) {
+  if (document.getElementById("t-" + id)) return;
+  var b = document.createElement("button");
+  b.id = "t-" + id;
+  b.className = "taskapp";
+  b.textContent = document.getElementById(id).dataset.title;
+  b.onclick = function() {
+    var w = document.getElementById(id);
+    if (w.style.display === "none") openWin(id);
+    else if (w.classList.contains("active")) minWin(id);
+    else focusWin(id);
+  };
+  taskApps.appendChild(b);
+}
+
+var resizeWin = null, rw, rh, rx, ry;
+
+document.querySelectorAll(".window").forEach(function(w) {
+  w.addEventListener("mousedown", function() { focusWin(w.id); });
+
+  var grip = document.createElement("div");
+  grip.className = "grip";
+  w.appendChild(grip);
+  grip.addEventListener("mousedown", function(e) {
     e.stopPropagation();
-    var app = this.dataset.app;
-    startMenu.classList.remove("open");
-    if (app === "lock") {
-      showLockScreen();
-    } else {
-      openApp(app);
-    }
+    resizeWin = w;
+    rx = e.clientX; ry = e.clientY;
+    rw = w.offsetWidth; rh = w.offsetHeight;
+    focusWin(w.id);
   });
-}
-
-var lockScreen = document.getElementById("lock-screen");
-
-function showLockScreen() {
-  lockScreen.classList.remove("hidden");
-}
-
-lockScreen.addEventListener("click", function () {
-  lockScreen.classList.add("hidden");
 });
 
-var cellWidth = 100;
-var cellHeight = 110;
-var gridStartX = 20;
-var gridStartY = 20;
-var iconGrid = {}; 
+var dragWin = null, dragX, dragY;
 
-function placeIcon(icon, col, row) {
-  icon.style.left = gridStartX + col * cellWidth + "px";
-  icon.style.top = gridStartY + row * cellHeight + "px";
-  icon.dataset.col = col;
-  icon.dataset.row = row;
-  iconGrid[col + "," + row] = icon;
-}
-
-var icons = document.querySelectorAll(".icon");
-for (var i = 0; i < icons.length; i++) {
-  var col = parseInt(icons[i].dataset.col, 10);
-  var row = parseInt(icons[i].dataset.row, 10);
-  placeIcon(icons[i], col, row);
-
-  icons[i].addEventListener("dblclick", function () {
-    openApp(this.dataset.app);
+document.querySelectorAll(".titlebar").forEach(function(bar) {
+  bar.addEventListener("mousedown", function(e) {
+    if (e.target.tagName === "BUTTON") return;
+    var w = bar.parentElement;
+    if (w.classList.contains("max")) return;
+    dragWin = w;
+    dragX = e.clientX; dragY = e.clientY;
   });
-  makeIconDraggable(icons[i]);
-}
+  bar.addEventListener("dblclick", function(e) {
+    if (e.target.tagName !== "BUTTON") maxWin(bar.parentElement.id);
+  });
+});
 
-function fileRow(name) {
-  return (
-    '<div class="file-row">' +
-    '<svg viewBox="0 0 24 24" width="18" height="18">' +
-    '<rect x="4" y="2" width="14" height="20" fill="#fff" stroke="#000" stroke-width="1.5"/>' +
-    '<line x1="7" y1="7" x2="15" y2="7" stroke="#999" stroke-width="1.2"/>' +
-    '<line x1="7" y1="11" x2="15" y2="11" stroke="#999" stroke-width="1.2"/>' +
-    "</svg>" +
-    "<span>" + name + "</span>" +
-    "</div>"
-  );
-}
-
-function getAppInfo(app) {
-  if (app === "about") {
-    return {
-      title: "My Computer",
-      width: 340,
-      height: 260,
-      body:
-        '<div><span class="tag">v1.0</span><span class="tag">MlinuxsOS</span></div>' +
-        '<div class="kv">' +
-        "<b>OS</b><span>MlinuxsOS</span>" +
-        "<b>Built with</b><span>HTML, CSS, JS</span>" +
-        "<b>Made by</b><span>me!</span>" +
-        "</div>" +
-        "<p>A tiny desktop that runs right in your browser. Drag the icons and windows around and try the terminal.</p>"
-    };
+document.addEventListener("mousemove", function(e) {
+  if (dragWin) {
+    dragWin.style.left = (dragWin.offsetLeft + e.clientX - dragX) + "px";
+    dragWin.style.top = Math.max(0, dragWin.offsetTop + e.clientY - dragY) + "px";
+    dragX = e.clientX; dragY = e.clientY;
   }
-  if (app === "notes") {
-    return {
-      title: "Notepad",
-      width: 320,
-      height: 240,
-      body:
-        '<textarea class="note">Welcome to Notepad.\nType whatever you want here.</textarea>'
-    };
+  if (resizeWin) {
+    resizeWin.style.width = Math.max(220, rw + e.clientX - rx) + "px";
+    resizeWin.style.height = Math.max(140, rh + e.clientY - ry) + "px";
   }
-  if (app === "files") {
-    return {
-      title: "My Documents",
-      width: 320,
-      height: 260,
-      body:
-        fileRow("README.md") +
-        fileRow("devlog-01.txt") +
-        fileRow("devlog-02.txt") +
-        fileRow("devlog-03.txt")
-    };
-  }
-  if (app === "bin") {
-    return {
-      title: "Recycle Bin",
-      width: 300,
-      height: 180,
-      body: "<p>The recycle bin is empty.</p>"
-    };
-  }
-  if (app === "settings") {
-    return {
-      title: "Settings",
-      width: 300,
-      height: 200,
-      body:
-        '<div class="setting-row"><button id="wallpaper-btn">Change wallpaper</button></div>' +
-        "<p>More settings coming soon.</p>"
-    };
-  }
-  if (app === "browser") {
-    return {
-      title: "Browser",
-      width: 420,
-      height: 320,
-      body:
-        '<div class="browser-bar">' +
-        '<input type="text" id="browser-url" placeholder="Type a website and press Enter">' +
-        "</div>" +
-        '<iframe id="browser-frame" src="about:blank"></iframe>' +
-        '<p class="browser-hint">Some sites won\'t allow themselves to be shown here, that\'s normal.</p>'
-    };
-  }
-  if (app === "terminal") {
-    return {
-      title: "Terminal",
-      width: 400,
-      height: 260,
-      body:
-        '<div class="terminal" id="terminal-output">' +
-        '<div class="terminal-line">MlinuxsOS terminal - type help</div>' +
-        "</div>"
-    };
-  }
-}
-
-function openApp(app) {
-  if (openApps[app]) {
-    openApps[app].window.classList.remove("hidden");
-    focusWindow(openApps[app].window);
-    return openApps[app].window;
-  }
-
-  var info = getAppInfo(app);
-  var win = document.createElement("div");
-  win.className = "window";
-  win.style.width = info.width + "px";
-  win.style.height = info.height + "px";
-  win.style.left = 80 + Object.keys(openApps).length * 25 + "px";
-  win.style.top = 60 + Object.keys(openApps).length * 25 + "px";
-
-  win.innerHTML =
-    '<div class="titlebar">' +
-    '<span class="title-text">' + info.title + "</span>" +
-    '<div class="win-btn min">_</div>' +
-    '<div class="win-btn max">□</div>' +
-    '<div class="win-btn close">×</div>' +
-    "</div>" +
-    '<div class="window-body">' + info.body + "</div>" +
-    '<div class="resize-handle"></div>';
-
-  document.getElementById("desktop").appendChild(win);
-
-  var chip = document.createElement("div");
-  chip.className = "task-chip";
-  chip.textContent = info.title;
-  chip.addEventListener("click", function () {
-    if (win.classList.contains("hidden")) {
-      win.classList.remove("hidden");
-      focusWindow(win);
-    } else {
-      win.classList.add("hidden");
+  if (rightDownX !== null) {
+    var dx = e.clientX - rightDownX, dy = e.clientY - rightDownY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      rightDragging = true;
+      selectBox.style.display = "block";
+      selectBox.style.left = Math.min(e.clientX, rightDownX) + "px";
+      selectBox.style.top = Math.min(e.clientY, rightDownY) + "px";
+      selectBox.style.width = Math.abs(dx) + "px";
+      selectBox.style.height = Math.abs(dy) + "px";
     }
-  });
-  document.getElementById("taskbar-apps").appendChild(chip);
-
-  openApps[app] = { window: win, chip: chip };
-
-  // close button
-  win.querySelector(".win-btn.close").addEventListener("click", function () {
-    win.remove();
-    chip.remove();
-    delete openApps[app];
-  });
-
-  // minimize button
-  win.querySelector(".win-btn.min").addEventListener("click", function () {
-    win.classList.add("hidden");
-  });
-
-  // maximize button
-  var savedSize = null;
-  win.querySelector(".win-btn.max").addEventListener("click", function () {
-    if (!savedSize) {
-      savedSize = {
-        left: win.style.left,
-        top: win.style.top,
-        width: win.style.width,
-        height: win.style.height
-      };
-      win.style.left = "0px";
-      win.style.top = "0px";
-      win.style.width = "100%";
-      win.style.height = "100%";
-    } else {
-      win.style.left = savedSize.left;
-      win.style.top = savedSize.top;
-      win.style.width = savedSize.width;
-      win.style.height = savedSize.height;
-      savedSize = null;
-    }
-  });
-
-  win.addEventListener("mousedown", function () {
-    focusWindow(win);
-  });
-
-  makeWindowDraggable(win);
-  makeWindowResizable(win);
-  focusWindow(win);
-
-  // extra setup for special apps
-  if (app === "terminal") {
-    setupTerminal(win.querySelector(".window-body"));
   }
-  if (app === "settings") {
-    win.querySelector("#wallpaper-btn").addEventListener("click", changeWallpaper);
-  }
-  if (app === "browser") {
-    setupBrowser(win.querySelector(".window-body"));
-  }
+});
 
-  return win;
+document.addEventListener("mouseup", function() {
+  dragWin = null;
+  resizeWin = null;
+  finishRightDrag();
+});
+
+startButton.onclick = function() {
+  startMenu.style.display = startMenu.style.display === "block" ? "none" : "block";
+};
+document.addEventListener("click", function(e) {
+  if (e.target !== startButton && !startMenu.contains(e.target)) startMenu.style.display = "none";
+});
+
+function tick() { clock.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+tick();
+setInterval(tick, 1000);
+
+commandInput.addEventListener("keydown", function(e) {
+  if (e.key !== "Enter") return;
+  var cmd = commandInput.value.trim().toLowerCase();
+  printLine("user@mlinux:~$ " + commandInput.value);
+  if (cmd === "help") printLine("commands: help, about, clear");
+  else if (cmd === "about") printLine("MlinuxOS - built for the WebOS mission.");
+  else if (cmd === "clear") terminalBody.querySelectorAll("p").forEach(function(p) { p.remove(); });
+  else if (cmd) printLine("command not found: " + cmd);
+  commandInput.value = "";
+  terminalBody.scrollTop = terminalBody.scrollHeight;
+});
+function printLine(text) {
+  var p = document.createElement("p");
+  p.textContent = text;
+  terminalBody.insertBefore(p, document.querySelector(".terminalinput"));
 }
 
-function focusWindow(win) {
-  var allWindows = document.querySelectorAll(".window");
-  for (var i = 0; i < allWindows.length; i++) {
-    allWindows[i].style.zIndex = 1;
-  }
-  topZ = topZ + 1;
-  win.style.zIndex = topZ;
-}
-
-// ---------- dragging windows ----------
-function makeWindowDraggable(win) {
-  var bar = win.querySelector(".titlebar");
-  var isDragging = false;
-  var startX, startY, startLeft, startTop;
-
-  bar.addEventListener("mousedown", function (e) {
-    if (e.target.classList.contains("win-btn")) return;
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = win.offsetLeft;
-    startTop = win.offsetTop;
-  });
-
-  document.addEventListener("mousemove", function (e) {
-    if (!isDragging) return;
-    var dx = e.clientX - startX;
-    var dy = e.clientY - startY;
-    win.style.left = startLeft + dx + "px";
-    win.style.top = startTop + dy + "px";
-  });
-
-  document.addEventListener("mouseup", function () {
-    isDragging = false;
-  });
-}
-
-// ---------- resizing windows ----------
-function makeWindowResizable(win) {
-  var handle = win.querySelector(".resize-handle");
-  var isResizing = false;
-  var startX, startY, startWidth, startHeight;
-
-  handle.addEventListener("mousedown", function (e) {
-    isResizing = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startWidth = win.offsetWidth;
-    startHeight = win.offsetHeight;
+document.querySelectorAll(".icon").forEach(function(icon) {
+  icon.addEventListener("click", function(e) {
     e.stopPropagation();
+    document.querySelectorAll(".icon").forEach(function(i) { i.classList.remove("selected"); });
+    icon.classList.add("selected");
   });
+});
 
-  document.addEventListener("mousemove", function (e) {
-    if (!isResizing) return;
-    var newWidth = startWidth + (e.clientX - startX);
-    var newHeight = startHeight + (e.clientY - startY);
-    win.style.width = Math.max(250, newWidth) + "px";
-    win.style.height = Math.max(150, newHeight) + "px";
-  });
+var rightDownX = null, rightDownY = null, rightDragging = false;
 
-  document.addEventListener("mouseup", function () {
-    isResizing = false;
-  });
-}
+desktop.addEventListener("mousedown", function(e) {
+  if (e.button !== 2 || e.target.closest(".window")) return;
+  document.querySelectorAll(".icon").forEach(function(i) { i.classList.remove("selected"); });
+  rightDownX = e.clientX; rightDownY = e.clientY;
+  rightDragging = false;
+});
 
-function makeIconDraggable(icon) {
-  var isDragging = false;
-  var startX, startY, startLeft, startTop;
-
-  icon.addEventListener("mousedown", function (e) {
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = icon.offsetLeft;
-    startTop = icon.offsetTop;
-  });
-
-  document.addEventListener("mousemove", function (e) {
-    if (!isDragging) return;
-    var dx = e.clientX - startX;
-    var dy = e.clientY - startY;
-    icon.style.left = startLeft + dx + "px";
-    icon.style.top = startTop + dy + "px";
-  });
-
-  document.addEventListener("mouseup", function () {
-    if (!isDragging) return;
-    isDragging = false;
-
-    var newCol = Math.round((icon.offsetLeft - gridStartX) / cellWidth);
-    var newRow = Math.round((icon.offsetTop - gridStartY) / cellHeight);
-    if (newCol < 0) newCol = 0;
-    if (newRow < 0) newRow = 0;
-
-    var newKey = newCol + "," + newRow;
-    var oldKey = icon.dataset.col + "," + icon.dataset.row;
-
-    if (iconGrid[newKey] && iconGrid[newKey] !== icon) {
-      // that slot is already taken, so snap back to where it was
-      placeIcon(icon, parseInt(icon.dataset.col, 10), parseInt(icon.dataset.row, 10));
-    } else {
-      delete iconGrid[oldKey];
-      placeIcon(icon, newCol, newRow);
-    }
-  });
-}
-
-function changeWallpaper() {
-  wallpaperIndex = (wallpaperIndex + 1) % wallpaperFilters.length;
-  document.getElementById("desktop").style.filter = wallpaperFilters[wallpaperIndex];
-}
-
-function setupBrowser(body) {
-  var input = body.querySelector("#browser-url");
-  var frame = body.querySelector("#browser-frame");
-
-  input.addEventListener("keydown", function (e) {
-    if (e.key !== "Enter") return;
-    var url = input.value.trim();
-    if (url === "") return;
-    if (url.indexOf("http://") !== 0 && url.indexOf("https://") !== 0) {
-      url = "https://" + url;
-    }
-    frame.src = url;
-  });
-}
-
-function setupTerminal(body) {
-  var output = body.querySelector("#terminal-output");
-  var row = document.createElement("div");
-  row.className = "terminal-input-row";
-  row.innerHTML =
-    '<span class="prompt">guest@mlinuxsos:~$</span>' +
-    '<input class="terminal-input" autocomplete="off">';
-
-  output.appendChild(row);
-  var input = row.querySelector("input");
-
-  var history = [];
-  var historyPos = -1;
-
-  function printLine(text) {
-    var line = document.createElement("div");
-    line.className = "terminal-line";
-    line.textContent = text;
-    output.insertBefore(line, row);
-    output.scrollTop = output.scrollHeight;
+function finishRightDrag() {
+  if (rightDownX === null) return;
+  if (rightDragging) {
+    var box = selectBox.getBoundingClientRect();
+    document.querySelectorAll(".icon").forEach(function(icon) {
+      var r = icon.getBoundingClientRect();
+      var hit = r.left < box.right && r.right > box.left && r.top < box.bottom && r.bottom > box.top;
+      icon.classList.toggle("selected", hit);
+    });
+  } else {
+    ctxMenu.style.left = rightDownX + "px";
+    ctxMenu.style.top = rightDownY + "px";
+    ctxMenu.style.display = "block";
   }
+  selectBox.style.display = "none";
+  rightDownX = null;
+}
 
-  function runCommand(text) {
-    if (text === "help") {
-      printLine("commands: help, about, date, whoami, ls, pwd, neofetch, theme, clear");
-    } else if (text === "about") {
-      printLine("MlinuxsOS - a simple browser desktop.");
-    } else if (text === "date") {
-      printLine(new Date().toString());
-    } else if (text === "whoami") {
-      printLine("guest");
-    } else if (text === "pwd") {
-      printLine("/home/guest");
-    } else if (text === "ls") {
-      printLine("README.md  devlog-01.txt  devlog-02.txt  devlog-03.txt");
-    } else if (text === "neofetch") {
-      printLine("OS: MlinuxsOS");
-      printLine("Shell: blockterm");
-      printLine("Window Manager: drag-n-drop");
-      printLine("Resolution: " + window.innerWidth + "x" + window.innerHeight);
-    } else if (text === "theme") {
-      changeWallpaper();
-      printLine("wallpaper changed");
-    } else if (text === "clear") {
-      output.innerHTML = "";
-    } else if (text === "") {
-    } else {
-      printLine(text + ": command not found");
-    }
+desktop.addEventListener("contextmenu", function(e) { e.preventDefault(); });
+document.addEventListener("click", function(e) {
+  if (!ctxMenu.contains(e.target)) ctxMenu.style.display = "none";
+});
+
+function refreshDesktop() {
+  ctxMenu.style.display = "none";
+  desktop.style.opacity = "0.4";
+  setTimeout(function() { desktop.style.opacity = "1"; }, 150);
+}
+
+var ACCENTS = { blue: "#3d78b8", green: "#3d8b5a", purple: "#6a4d9e", red: "#a13d3d" };
+
+function applyAccent(name, save) {
+  var c = ACCENTS[name] || ACCENTS.blue;
+  document.querySelectorAll(".titlebar, .startbutton, .starttitle, .taskapp.on").forEach(function(el) { el.style.background = c; });
+  document.querySelectorAll(".swatch").forEach(function(s) { s.classList.toggle("active", s.dataset.accent === name); });
+  if (save) localStorage.setItem("mlinux_accent", name);
+}
+document.querySelectorAll(".swatch").forEach(function(s) {
+  s.addEventListener("click", function() { applyAccent(s.dataset.accent, true); });
+});
+applyAccent(localStorage.getItem("mlinux_accent") || "blue", false);
+
+var WCODES = { 0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "overcast", 45: "foggy", 61: "rain", 63: "rain", 71: "snow", 80: "showers", 95: "storms" };
+
+function loadWeather(lat, lon) {
+  weatherBody.textContent = "loading...";
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current_weather=true")
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var w = data.current_weather;
+      var desc = WCODES[w.weathercode] || "changing";
+      weatherBody.innerHTML = '<div class="weatherbig">' + Math.round(w.temperature) + '&deg;C</div>' + desc + ', wind ' + w.windspeed + ' km/h' +
+        '<br><button onclick="getWeather()">Refresh</button>';
+    })
+    .catch(function() {
+      weatherBody.innerHTML = "couldn't reach the weather.<br><button onclick=\"getWeather()\">Try again</button>";
+    });
+}
+
+function getWeather() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(pos) { loadWeather(pos.coords.latitude, pos.coords.longitude); },
+      function() { loadWeather(25.3573, 55.4033); } 
+    );
+  } else {
+    loadWeather(25.3573, 55.4033);
   }
-
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      var text = input.value.trim();
-      printLine("guest@mlinuxsos:~$ " + text);
-      if (text !== "") {
-        history.push(text);
-      }
-      historyPos = history.length;
-      input.value = "";
-      runCommand(text);
-    } else if (e.key === "ArrowUp") {
-      if (historyPos > 0) {
-        historyPos = historyPos - 1;
-        input.value = history[historyPos];
-      }
-      e.preventDefault();
-    } else if (e.key === "ArrowDown") {
-      if (historyPos < history.length - 1) {
-        historyPos = historyPos + 1;
-        input.value = history[historyPos];
-      } else {
-        historyPos = history.length;
-        input.value = "";
-      }
-      e.preventDefault();
-    }
-  });
-
-  output.addEventListener("mousedown", function () {
-    setTimeout(function () {
-      input.focus();
-    }, 0);
-  });
 }
-
-// need to fix
-function centerWindow(win) {
-  var desktop = document.getElementById("desktop");
-  var left = (desktop.clientWidth - win.offsetWidth) / 2;
-  var top = (desktop.clientHeight - win.offsetHeight) / 2;
-  win.style.left = left + "px";
-  win.style.top = top + "px";
-}
-
-var startupWindow = openApp("about");
-centerWindow(startupWindow);
+getWeather();
