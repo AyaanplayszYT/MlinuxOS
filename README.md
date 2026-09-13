@@ -4,42 +4,38 @@ MlinuxOS is a miniature operating system that was created by me to be used in th
 
 I decided to give it a desktop appearance while adding my own elements into it.
 
-<img width="1917" height="1078" alt="image" src="https://github.com/user-attachments/assets/873b7f70-dd90-4d64-b8e4-5dd8806ad1bd" />
+<img width="1917" height="1078" alt="image" src="https://github.com/user-attachments/assets/898b205b-3906-4b4d-957f-985a311d2708" />
 
 ## What I Made
 
 MlinuxOS has:
 
-* Draggable desktop icons
 * Draggable windows
 * Resizable windows
-* Minimize, maximize and close buttons
+* Minimize, and close buttons
 * Start menu
 * Taskbar
 * Clock
-* Lock screen
 * Notepad
 * File manager
 * Recycle Bin
 * Settings
-* Browser
 * Terminal
 
-The terminal also has a few simple commands like `help`, `about`, `date`, `whoami`, `ls`, `pwd` and `neofetch`.
+The terminal also has a few simple commands like `help`, `about`, `date` and `clear`
 
-<img width="500" alt="image" src="https://github.com/user-attachments/assets/03b17a17-85f3-4418-b519-b1508f27bea9" />
+<img width="613" height="458" alt="image" src="https://github.com/user-attachments/assets/d611091c-aada-41bf-93e0-e0c5ba5783ae" />
 
 ## My Features
 
 Here are some additional features that I have incorporated into my project besides the essential ones specified in the guide:
 
 * Terminal with command history support
-* Browser 
-* Wallpaper filtering 
-* Grid-aligned desktop icons 
-* Pixel cat on the taskbar
+* UI Themes
+* Draggable windows
+* Weather app
 
-<img width="1917" height="1078" alt="Screenshot 2026-09-12 142441" src="https://github.com/user-attachments/assets/47eb8e7b-5b44-4937-9940-f2ffa758eb6b" />
+<img width="1917" height="881" alt="image" src="https://github.com/user-attachments/assets/69c6c900-8879-4280-9874-b2ece6f4b886" />
 
 ## How I Made It
 
@@ -48,9 +44,6 @@ I used:
 * HTML
 * CSS
 * JavaScript
-
-
-MlinuxOS was made to meet these requirements while adding my own ideas.
 
 ## Links
 
